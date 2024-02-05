@@ -1,10 +1,12 @@
+require('dotenv').config()
 const express = require('express')
 var morgan = require('morgan')
 const cors = require('cors')
+const Entry = require('./models/entry')
 
 const app = express()
 app.use(cors())
-app.use(express.static('dist'))
+app.use(express.static('dist')) //This will render the frontend
 app.use(express.json())
 
 let phonebook = [
@@ -47,13 +49,15 @@ app.use(morgan(':method :url :status :res[content-length] :body - :response-time
 
 /** -----------------GET----------------- **/
 
-app.get('/', (req, res) => {
-    return res.send('<h1>Hello World </h1>')
-
-})
+// app.get('/', (req, res) => {
+//     return res.send('<h1>Hello World </h1>')
+// })
 
 app.get('/api/persons', (req, res) => {
-    return res.json(phonebook)
+    Entry.find({}).then(notes => {
+        res.json(notes)
+    })
+    return res
 })
 
 
@@ -149,6 +153,6 @@ const unknownEndpoint = (request, response) => {
 app.use(unknownEndpoint)
 
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 app.listen(PORT)
 console.log(`server running on port ${PORT}`)
