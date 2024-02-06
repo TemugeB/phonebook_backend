@@ -20,7 +20,7 @@ app.use(express.json())
 // }
 // app.use(requestLogger)
 
-morgan.token('body', (req, res) => JSON.stringify(req.body))
+morgan.token('body', (req) => JSON.stringify(req.body))
 app.use(morgan(':method :url :status :res[content-length] :body - :response-time ms'))
 
 
@@ -53,15 +53,15 @@ app.get('/info', (req, res) => {
 app.get('/api/persons/:id', (req, res, next) => {
 
     Entry.findById(req.params.id)
-    .then(entry => {
-        if (entry){
-            res.json(entry)
-        }
-        else{
-            res.status(404).end()
-        }
-    })
-    .catch(error => next(error))
+        .then(entry => {
+            if (entry){
+                res.json(entry)
+            }
+            else{
+                res.status(404).end()
+            }
+        })
+        .catch(error => next(error))
 })
 
 
@@ -78,7 +78,7 @@ app.post('/api/persons', (req, res, next) => {
     entry.save().then(savedEntry => {
         res.json(savedEntry)
     })
-    .catch(error=> next(error))
+        .catch(error => next(error))
 })
 
 
@@ -86,7 +86,7 @@ app.post('/api/persons', (req, res, next) => {
 app.delete('/api/persons/:id', (req, res, next) => {
 
     Entry.findByIdAndDelete(req.params.id)
-        .then(result => {
+        .then(() => {
             res.status(204).end()
         })
         .catch(error => next(error))
@@ -104,7 +104,7 @@ app.put('/api/persons/:id', (req, res, next) => {
         number: body.number
     }
 
-    Entry.findByIdAndUpdate(req.params.id, entry, {new: true, runValidators: true})
+    Entry.findByIdAndUpdate(req.params.id, entry, { new: true, runValidators: true })
         .then(updatedEntry => {
             res.json(updatedEntry)
         })
@@ -115,23 +115,23 @@ app.put('/api/persons/:id', (req, res, next) => {
 //When no endpoint exist
 const unknownEndpoint = (request, response) => {
     response.status(404).send({ error: 'unknown endpoint' })
-  }
+}
 app.use(unknownEndpoint)
 
 
 const errorHandler = (error, request, response, next) => {
     console.error(error.message)
-  
+
     if (error.name === 'CastError') {
         return response.status(400).send({ error: 'malformatted id' })
-    } 
-    else if (error.name === 'ValidationError'){
-        return response.status(400).json({error: error.message})
     }
-  
+    else if (error.name === 'ValidationError'){
+        return response.status(400).json({ error: error.message })
+    }
+
     next(error)
-  }
-  
+}
+
 // this has to be the last loaded middleware.
 app.use(errorHandler)
 

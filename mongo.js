@@ -19,7 +19,7 @@ const noteSchema = new mongoose.Schema({
 
 const Entry = mongoose.model('Entry', noteSchema)
 
-if (process.argv.length == 3){
+if (process.argv.length === 3){
 
     console.log('Phonebook:')
     Entry.find({}).then( result => {
@@ -31,22 +31,21 @@ if (process.argv.length == 3){
 
 }
 
-else if (process.argv.length == 5){
+else if (process.argv.length === 5){
     const entry = new Entry({
         name: process.argv[3],
         number: process.argv[4]
     })
 
-    entry.save().then(result => {
+    entry.save().then(() => {
         console.log('entry saved!')
         mongoose.connection.close()
     })
 
-}    
+}
 
 else {
     console.log('Incorrect number of arguments to the function.')
     process.exit(1)
-}    
-
+}
 
