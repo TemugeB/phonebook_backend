@@ -8,9 +8,15 @@ POST http://localhost:3001/api/persons
 Content-Type: application/json
 
 {
-    "name": "Isaac Asimov2",
-    "number": "555-5555"
+    "name": "Isaac Asimov",
+    "number": "222-555-5555"
 }
+
+###
+GET http://localhost:3001/api/persons/65c1da7b8cb6058a076bef2d
+
+###
+GET http://localhost:3001/api/persons/65vc3
 
 ###
 DELETE http://localhost:3001/api/persons/5375

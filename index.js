@@ -9,29 +9,6 @@ app.use(cors())
 app.use(express.static('dist')) //This will render the frontend
 app.use(express.json())
 
-let phonebook = [
-    { 
-      "id": 1,
-      "name": "Arto Hellas", 
-      "number": "040-123456"
-    },
-    { 
-      "id": 2,
-      "name": "Ada Lovelace", 
-      "number": "39-44-5323523"
-    },
-    { 
-      "id": 3,
-      "name": "Dan Abramov", 
-      "number": "12-43-234345"
-    },
-    { 
-      "id": 4,
-      "name": "Mary Poppendieck", 
-      "number": "39-23-6423122"
-    }
-]
-
 
 // //need to register this callback before defining the other app methods
 // const requestLogger = (req, res, next) => {
@@ -54,8 +31,8 @@ app.use(morgan(':method :url :status :res[content-length] :body - :response-time
 // })
 
 app.get('/api/persons', (req, res) => {
-    Entry.find({}).then(notes => {
-        res.json(notes)
+    Entry.find({}).then(entries => {
+        res.json(entries)
     })
     return res
 })
@@ -63,32 +40,33 @@ app.get('/api/persons', (req, res) => {
 
 app.get('/info', (req, res) => {
 
-    return res.send(`
-        <div>Phonebook has info for ${phonebook.length} people</div>
+    Entry.find({}).then(entries => {
+        res.send(`
+        <div>Phonebook has info for ${entries.length} people</div>
         <br>
         <div>${Date().toString()}</div>
-    `)
+        `)
+    })
 })
 
 
-app.get('/api/persons/:id', (req, res) => {
+app.get('/api/persons/:id', (req, res, next) => {
 
-    //get the id of the request
-    const id = Number(req.params.id)
-
-    const person = phonebook.find(p => p.id === id)
-
-    if (person){
-        return res.json(person)
-    }
-    else{
-        return res.status(404).end()
-    }
+    Entry.findById(req.params.id)
+    .then(entry => {
+        if (entry){
+            res.json(entry)
+        }
+        else{
+            res.status(404).end()
+        }
+    })
+    .catch(error => next(error))
 })
 
 
 /* ------------------------POST-------------------------*/
-app.post('/api/persons', (req, res) => {
+app.post('/api/persons', (req, res, next) => {
     const body = req.body
     console.log(body)
 
@@ -99,51 +77,50 @@ app.post('/api/persons', (req, res) => {
         return res.status(400).json({error: "Number field is empty"})
     }
 
-    //Check if the name exists
-    if (phonebook.find(p => p.name.toLowerCase() === body.name.toLowerCase())){
-        return res.status(400).json({error: `Person with name ${body.name} already exists in database`})
-    }
-
-    const newEntry = {
+    const entry = new Entry({
         name: body.name,
-        number: body.number,
-        id: getNewId()
-    }
+        number: body.number
+    })
 
-    phonebook = phonebook.concat(newEntry)
-    return res.json(newEntry)
+    entry.save().then(savedEntry => {
+        res.json(savedEntry)
+    })
+    .catch(error=> next(error))
 
+    // phonebook = phonebook.concat(newEntry)
+    // return res.json(newEntry)
+    return res
 })
 
 
 /* -----------------------Delete -----------------------*/
-app.delete('/api/persons/:id', (req, res) => {
+app.delete('/api/persons/:id', (req, res, next) => {
 
-    const id = Number(req.params.id)
+    Entry.findByIdAndDelete(req.params.id)
+        .then(result => {
+            res.status(204).end()
+        })
+        .catch(error => next(error))
 
-    const filteredPhonebook = phonebook.filter(p => p.id !== id)
-    if (filteredPhonebook.length == phonebook.length){
-        return res.status(400).json({error: 'person does not exist in the database'})
-    }
-
-    //overwrite the existing phonebook
-    phonebook = filteredPhonebook
-    console.log(`Person with id '${id}' delete`)
-
-    return res.status(204).end()
 })
 
 
+/*------------------------Update------------------------*/
+app.put('/api/persons/:id', (req, res, next) => {
 
-/* -------------------Helper Functions ---------------- */
-const getNewId = () => {
-    while(true){
-        const newId = Math.trunc(Math.random() * 10000)
-        if(!phonebook.find(p => p.id === newId)){
-            return newId
-        }
+    const body = req.body
+
+    const entry = {
+        name: body.name,
+        number: body.number
     }
-}
+
+    Entry.findByIdAndUpdate(req.params.id, entry, {new: true})
+        .then(updatedEntry => {
+            res.json(updatedEntry)
+        })
+        .catch(error => next(error))
+})
 
 
 //When no endpoint exist
@@ -151,6 +128,20 @@ const unknownEndpoint = (request, response) => {
     response.status(404).send({ error: 'unknown endpoint' })
   }
 app.use(unknownEndpoint)
+
+
+const errorHandler = (error, request, response, next) => {
+    console.error(error.message)
+  
+    if (error.name === 'CastError') {
+      return response.status(400).send({ error: 'malformatted id' })
+    } 
+  
+    next(error)
+  }
+  
+// this has to be the last loaded middleware.
+app.use(errorHandler)
 
 
 const PORT = process.env.PORT
