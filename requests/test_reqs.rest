@@ -13,13 +13,22 @@ Content-Type: application/json
 }
 
 ###
-GET http://localhost:3001/api/persons/65c1da7b8cb6058a076bef2d
+POST http://localhost:3001/api/persons
+Content-Type: application/json
+
+{
+    "name": "Isaac Asimov"
+}
+
 
 ###
-GET http://localhost:3001/api/persons/65vc3
+GET http://localhost:3001/api/persons/65c1e7c8620a028ace0e7886
 
 ###
-DELETE http://localhost:3001/api/persons/5375
+GET http://localhost:3001/api/persons/65c1e7c8620a028ace0e7886
+
+###
+DELETE http://localhost:3001/api/persons/65c1e7c8620a028ace0e7886
 
 ###
 GET http://localhost:3001/api/notes HTTP/1.1

@@ -70,13 +70,6 @@ app.post('/api/persons', (req, res, next) => {
     const body = req.body
     console.log(body)
 
-    if (!body.name){
-        return res.status(400).json({error: "Name field is empty"})
-    }
-    else if (!body.number){
-        return res.status(400).json({error: "Number field is empty"})
-    }
-
     const entry = new Entry({
         name: body.name,
         number: body.number
@@ -86,10 +79,6 @@ app.post('/api/persons', (req, res, next) => {
         res.json(savedEntry)
     })
     .catch(error=> next(error))
-
-    // phonebook = phonebook.concat(newEntry)
-    // return res.json(newEntry)
-    return res
 })
 
 
@@ -115,7 +104,7 @@ app.put('/api/persons/:id', (req, res, next) => {
         number: body.number
     }
 
-    Entry.findByIdAndUpdate(req.params.id, entry, {new: true})
+    Entry.findByIdAndUpdate(req.params.id, entry, {new: true, runValidators: true})
         .then(updatedEntry => {
             res.json(updatedEntry)
         })
@@ -134,8 +123,11 @@ const errorHandler = (error, request, response, next) => {
     console.error(error.message)
   
     if (error.name === 'CastError') {
-      return response.status(400).send({ error: 'malformatted id' })
+        return response.status(400).send({ error: 'malformatted id' })
     } 
+    else if (error.name === 'ValidationError'){
+        return response.status(400).json({error: error.message})
+    }
   
     next(error)
   }
