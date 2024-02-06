@@ -21,7 +21,16 @@ const entrySchema = new mongoose.Schema({
     },
     number: {
       type: String,
-      minLength: 5,
+      minLength: 9,
+      validate: {
+        validator: (v) => {
+          //Dont know REGEX (╥﹏╥)
+          //ChatGPT can do this. ⸜(｡˃ ᵕ ˂ )⸝♡
+          const phoneRegex = /^(?:\d{2,3})-(?:\d+)$/
+          return phoneRegex.test(v)
+        },
+        message: props => `${props.value} is not valid. Accepted formats: xxx-xxxxx, xx-xxxxxx, with min length of 8.`
+      },
       required: true,
     }
 })
